@@ -1,0 +1,241 @@
+Lab 01: (90 minutes(2hr 0 min)) ((((((The Course 5524AzureSetup files are located on the other LOD image <552242A>. This course image is <552241A>. The setup files are used in several exercises. Urgent!! This must be exported over to image <552241A>.
+
+From <https://skillpipe.courseware-marketplace.com/epubFiles/a8106a75-74a1-4d84-be6f-0a039e41d501/3/OPS/html/55224-1a00.html> 
+
+Note: All PowerShell and Command-line consoles should be opened with elevated Administrator privileges. Many of the steps in your labs are completed with PowerShell scripts to speed up the exercises. Familiarize yourself with them before executing the scripts to benefit fully from the class. 
+
+
+You must have your Azure Subscription Name and login credentials before starting this lab. Lab0_X.ps1 and Lab0_3.cmd can be helpful with the exercises in this lab. Before running any scripts, execute the Set-ExecutionPolicy –UnRestricted command on your system. 
+
+From <https://skillpipe.courseware-marketplace.com/epubFiles/a8106a75-74a1-4d84-be6f-0a039e41d501/3/OPS/html/55224-1a00.html> 
+
+
+Objective for Lab0_1: Configure the computer to use Azure PowerShell and test your Azure account. 
+
+From <https://skillpipe.courseware-marketplace.com/epubFiles/a8106a75-74a1-4d84-be6f-0a039e41d501/3/OPS/html/55224-1a00.html> 
+
+Exercise 1: Install Azure PowerShell and Login to Microsoft Azure 
+Note (alternatively): Cloud practitioners alternatively can install Tools/SDKs from Microsoft Azure website link; https://docs.microsoft.com/en-us/azure/#pivot=sdkstools. To explicitly install Azure PowerShell visit this link; https://docs.microsoft.com/en-us/powershell/azure/get-started-azureps?view=azurermps-6.1.0#install-azure-powershell.
+
+From <https://skillpipe.courseware-marketplace.com/epubFiles/a8106a75-74a1-4d84-be6f-0a039e41d501/3/OPS/html/55224-1a00.html> 
+
+	1. # Open PowerShell_ISE with elevated privileges.
+	2. # You need PowerShellGet version 1.1.2.0 or higher. To update PowerShellGet, use the following command below.
+	Install-Module PowerShellGet -Force
+	3. # Verify Internet connectivity then <run the following command below> to install Azure PowerShell. If prompted to trust modules from PSGallery answer yes.
+	Find-Module AzureRm -Repository PSGallery | Install-Module -AllowClobber -Force
+	4. # List AzureRM cmdlets:
+	Get-Command –Module AzureRM ; Get-Command –Module AzureRM | Measure-Object
+	5. # Get help for login:
+	Get-Help Login-AzureRmAccount –Full
+	6. # Login to Azure using your subscription credentials:
+	Login-AzureRmAccount
+	7. # Create the following variables to be used during this process:
+	$SubscriptionID = "937fd956-9ac7-4575-bafc-f8a58b330111"
+	$WorkFolder = "C:\Labfiles\"
+	$namePrefix = “ds” # Replace “IN” with your initials.
+	$namePrefix = $namePrefix.ToLower() + “55224a” + (Get-Date -Format “ss")
+	$resourceGroupName = $namePrefix + "rg“
+	$Location = "EASTUS“
+	$StorageAccountName = $namePrefix + "sa“
+	$azcopyPath = "C:\Program Files (x86)\Microsoft SDKs\Azure\AzCopy" # Change the drive location if your computer requires it.
+	$BlobContainerName = "55224a"
+	6. # Select the default subscription you will use for this session: 
+	Get-AzureRmSubscription -SubscriptionID $SubscriptionID | Select-AzureRmSubscription 
+	7. # Create a resource group: 
+	New-AzureRmResourceGroup -Name $resourceGroupName -Location $Location
+	8. # Create a storage account and Blob:
+	New-AzureRmStorageAccount -ResourceGroupName $resourceGroupName -Name $StorageAccountName -Location $Location -Type Standard_LRS
+	$StorageAccountKey = (Get-AzureRmStorageAccountKey -ResourceGroupName $resourceGroupName -Name $StorageAccountName)[0].Value
+	$StorageAccountContext = New-AzureStorageContext -StorageAccountName $StorageAccountName -StorageAccountKey $StorageAccountKey
+	9. New-AzureStorageContainer -Name $BlobContainerName -Context $StorageAccountContext
+	10. #Verify Azure Login Context: 
+	Get-AzureRmContext 
+	11. #Verify Storage Account Settings: 
+	Get-AzurermStorageAccount 
+	12. #Verify the creation of the Storage Container:
+	Get-AzureStorageContainer -Context $StorageAccountContext 
+	13. #Login to the Azure Portal using your web browser and verify the resource group, storage account and Blob just created 
+	14. #Update the PowerShell help database: 
+	Update-Help -Force 
+
+
+Exercise 2: Install AzCopy 
+
+From <https://skillpipe.courseware-marketplace.com/epubFiles/a8106a75-74a1-4d84-be6f-0a039e41d501/3/OPS/html/55224-1a00.html> 
+
+	1. # From your web browser, use the following link to download AzCopy: http://aka.ms/downloadazcopy
+	2. # Install Azcopy using the default configuration settings. 
+	3. # From the PowerShell_ISE window used in Exercise one, use AzCopy to copy files in $WorkFolder to the container created in Exercise 1:
+	$azcopycmd = "cmd.exe /C '$azcopyPath\azcopy.exe' /Y /NC:2 /Source:'$workFolder' /Dest:'https://$StorageAccountName.blob.core.windows.net/$BlobContainerName' /DestKey:$StorageAccountKey“
+	Invoke-Expression -Command $azcopycmd
+
+
+Exercise 3: Install Azure CLI (For setup instructions on non-Windows clients: 
+
+From <https://skillpipe.courseware-marketplace.com/epubFiles/a8106a75-74a1-4d84-be6f-0a039e41d501/3/OPS/html/55224-1a00.html> 
+
+Note: If steps 1 through 3 below fail and you are unable to install CLI 2.0, install the older version of CLI (http://aka.ms/webpi-azure-cli). You will use “azure” for CLI instead of “az” for CLI 2.0 to run commands and some of the parameters will be different. Use the help options (-h) to find the correct syntax for each command (e.g. azure storage account create –h). 
+
+From <https://skillpipe.courseware-marketplace.com/epubFiles/a8106a75-74a1-4d84-be6f-0a039e41d501/3/OPS/html/55224-1a00.html> 
+
+
+1.	Download and install the latest 64-bit version of Python using the default options: https://www.python.org/downloads/ (**Note: when downloading, participants should add python to PATH, it is also recommended)
+2.	From an Administrator Command Prompt run the following command to verify the version of Python installed: python --version 
+3.	Install Azure CLI: pip install azure-cli 
+4.	Get a list of the base commands for Azure CLI: az 
+5.	Login to Azure: az login (Note: You will be prompted to use a web browser to enter an authentication code at https://aka.ms/devicelogin) 
+6.	List existing resource groups: az group list 
+7.	Create a new resource group: az group create --name [“your initials” + 55224a + “four digit mmdd in your birthday” + “rg”] –-location [“eastus” or your location] 
+8.	Create a new storage account: az storage account create –n [“your initials” + 55224a + “four digit mmdd in your birthday” + “sa”] -l [same location as previous resource group] –g [previous resource group name] - -sku Standard_LRS (Note: The az storage account check-name command can be used to verify that no one else is using a storage account name.) 
+9.	Use the connection string parameter to get the account key for your new storage account: az storage account show-connection-string –n [storage account name] –g [ resourcegroupname] 
+10.	Use the information from the previous command to configure the new storage account as your default for this session. The access key should be enclosed in double quotes: 
+	•
+	Set AZURE_STORAGE_ACCOUNT=<storageaccountname> 
+	•
+	Set AZURE_STORAGE_ACCESS_KEY=“<storageaccountkey>” 
+11.	Create a container in the default storage account: az storage container create –n 55224a 
+12.	Use the Azure Portal to verify the creation of the new resource group, storage account, and container. 
+13.	Delete the resource group and verify that the storage account and container were also removed: az group delete –n [resourcegroupname]  (**note: when prompted if you want to perform this operation, enter <Y>) 
+
+From <https://skillpipe.courseware-marketplace.com/epubFiles/a8106a75-74a1-4d84-be6f-0a039e41d501/3/OPS/html/55224-1a00.html> 
+
+
+Exercise 4: Install Power BI Desktop 
+1.	Use the Azure Portal to get the name and access key of the storage account you creating in Exercise 1 with PowerShell. 
+2.	Go to http://powerbi.com and download the latest version of Power BI Desktop (**note: participants can install powerbi on their local machines)
+3.	Install it using the default settings 
+4.	Without logging in, use the tool bar to access Get Data > More > Azure > Microsoft Azure Blob Storage 
+5.	Use the credentials from step one to connect to your storage account 
+6.	Verify that the files you copied with AzCopy are listed then click cancel and exit the Power BI tool without saving any changes. 
+
+From <https://skillpipe.courseware-marketplace.com/epubFiles/a8106a75-74a1-4d84-be6f-0a039e41d501/3/OPS/html/55224-1a00.html> 
+
+
+
+Exercise 5: Install Storage Explorer 
+1.	Go to http://storageexplorer.com and download & install the latest version of Microsoft Azure Storage Explorer. Use the default configuration settings. 
+2.	Open Azure Storage Explorer 
+3.	Login to with your Azure credentials. 
+4.	Locate the OhioWeather.csv file and use the options available to see the size and content of the file. (**Note: there are no files in the labfiles folder which were copied to storage that resemble a CSV file. Have students download another document in its place.)
+5.	Download the file to C:\Temp on the local computer.  (there are no temp folders implicitly created with the VM)
+6.	Exit the Azure Storage Explorer 
+
+From <https://skillpipe.courseware-marketplace.com/epubFiles/a8106a75-74a1-4d84-be6f-0a039e41d501/3/OPS/html/55224-1a00.html> 
+
+
+Exercise 6: Install SQL Server Management Studio (SSMS) 
+1.	Use your web browser to navigate to the Technet web-site (http://technet.microsoft.com) and do a search for “SQL Server Management Studio download” 
+2.	Use one of the links provided to download and install SSMS. 
+3.	Configure SSMS with the default settings 
+4.	Login to the Azure Portal and create a new database by clicking + Create a resource > New > Databases > SQL Databases. 
+5.	Use the following options for the new database: 
+	•
+	Name: db1 
+	•
+	Resource Group: Use any existing group 
+	•
+	Server: Create a server with the name “in” + “time in hhmm” + “sql” (Credentials: admin : admin1, password : Pa$$w0rd). Make sure the option to “Allow azure services to access server is checked. 
+	•
+	Accept all other default settings to create the database 
+6.	After the database is setup, use SSMS to connect to the database. When specifying the server name, add the suffix “.database.windows.net” (**note: at the SQL server connection context box, you must also change the authentication from Windows to SQL Server Authentication. Furthermore, you also need to provide your DB1 credentials, and add a firewall rule to Azure SQL server firewall rule. The rule should be displayed during your attempted sign in from SSMS.) <.i.e; 199.101.110.10> if you cannot connect initially. Cancel the operation and try again. You may need to add your client IP and the range, e.g. …110.0 - 110.255
+7.	After you have verified that the connection works, disconnect, then delete the server and database. (You can find and manage the resources under the Resource Group you added them to in Azure Portal. 
+
+From <https://skillpipe.courseware-marketplace.com/epubFiles/a8106a75-74a1-4d84-be6f-0a039e41d501/3/OPS/html/55224-1a00.html> 
+
+
+Exe 7:
+
+1.	Configure variables used for creating the VM: 
+	•
+	$SubscriptionID = "MSDN Platforms" # Replace with the name of your Azure Subscription 
+	•
+	$WorkFolder = "C:\Labfiles\“ 
+	•
+	$PW = Write-Output 'Pa$$w0rdPa$$w0rd' | ConvertTo-SecureString -AsPlainText -Force # Password for Administrator account 
+	•
+	$AdminCred = New-Object System.Management.Automation.PSCredential("Adminz",$PW) # Login credentials for Administrator account 
+	•
+	$Location = "eastus“ 
+	•
+	$VMCLX = "IN" + "55224a" # Replace "IN" with your initials. 
+	•
+	$namePrefix = "IN" + (Get-Date -Format "HHmmss") # Replace "IN" with your initials. Date information is added in this example to help make the names unique 
+	•
+	$ResourceGroupName = $namePrefix.ToLower() + "rg“ 
+	•
+	$StorageAccountName = $namePrefix.ToLower() + "sa" # Must be lower case 
+	•
+	$SAShare = "55224a" # Must be lower case 
+	•
+	$PublicIPName1 = "PublicIP1" 
+2.	Login to Azure 
+	•
+	Login-AzureRmAccount 
+	•
+	Get-AzureRmSubscription -SubscriptionName $SubscriptionID | Select-AzureRmSubscription 
+3.	Create Resource Group, Storage Account & Container Share 
+	•
+	New-AzureRmResourceGroup -Name $ResourceGroupName -Location $Location 
+	•
+	New-AzureRmStorageAccount -ResourceGroupName $resourceGroupName -Name $StorageAccountName -Location $Location -Type Standard_RAGRS 
+	•
+	$StorageAccountKey = (Get-AzureRmStorageAccountKey -ResourceGroupName $ResourceGroupName -Name $StorageAccountName)[0].Value 
+	•
+	$StorageAccountContext = New-AzureStorageContext -StorageAccountName $StorageAccountName -StorageAccountKey $StorageAccountKey 
+	• 
+	New-AzureStorageContainer -Name $SAShare.ToLower() -Context $StorageAccountContext -Permission Container -Verbose 
+4.	Create Network: 
+	•
+	$Subnet10 = New-AzureRmVirtualNetworkSubnetConfig -Name "Subnet10" -AddressPrefix 192.168.10.0/24 
+	•
+	$VirtualNetwork1 = New-AzureRmVirtualNetwork -Name "VirtualNetwork1" -ResourceGroupName 
+	•
+	$ResourceGroupName -Location $Location -AddressPrefix 192.168.0.0/16 -Subnet $Subnet10 
+	•
+	$PublicIP1 = New-AzureRmPublicIpAddress -Name $PublicIPName1 -ResourceGroupName $ResourceGroupName -Location $Location -AllocationMethod Dynamic 
+	•
+	$CLXNIC1 = New-AzureRmNetworkInterface -Name "CLXNIC1" -ResourceGroupName $ResourceGroupName -Location $Location -SubnetId $VirtualNetwork1.Subnets[0].Id -PublicIpAddressId $PublicIP1.Id 
+5.	Create Windows 10 VM and copy classroom lab files: 
+	•
+	$VM1 = New-AzureRmVMConfig -VMName $VMCLX -VMSize "Standard_DS2“ 
+	•
+	$VM1 = Set-AzureRmVMOperatingSystem -VM $VM1 -Windows -ComputerName $VMCLX -Credential $AdminCred -WinRMHttp -ProvisionVMAgent –EnableAutoUpdate 
+	•
+	$VM1 = Set-AzureRmVMSourceImage -VM $VM1 -PublisherName "MicrosoftVisualStudio" -Offer "Windows" -Skus "Windows-10-N-x64" -Version "latest“ 
+	•
+	$VM1 = Add-AzureRMVMNetworkInterface -VM $VM1 -ID $CLXNIC1.Id 
+	•
+	$VHDURI1 = (Get-azureRMstorageaccount -ResourceGroupName $ResourceGroupName -Name $StorageAccountName).PrimaryEndPoints.Blob.ToString() + "vhdclx/VHDCLX1.vhd“ 
+	•
+	$VM1 = Set-AzureRmVMOSDisk -VM $VM1 -Name "VHDCLX1" -VHDURI $VHDURI1 -CreateOption FromImage 
+	•
+	New-AzureRmVM -ResourceGroupName $ResourceGroupName -Location $Location -VM $VM1 –Verbose 
+	•
+	Start-AzureRMVM -Name $VMCLX -ResourceGroupName $ResourceGroupName 
+	•
+	$PublicIPAddress1 = Get-AzureRmPublicIpAddress -Name $PublicIPName1 -ResourceGroupName $ResourceGroupName 
+	•
+	Write-Output "The virtual machine has been created. Login as Adminz by using Remote Desktop Connection to connect to its Public IP address. The IP Address will be added to your trusted hosts list.“ 
+	• 
+	Write-Output "Public IP Address for $VMCLX is: " $PublicIPAddress1.IpAddress 
+	•
+	Set-item wsman:localhost\client\trustedhosts -value $PublicIPAddress1.Ipaddress -Concatenate -Force 
+	•
+	Invoke-Command -Computername $PublicIPAddress1.IpAddress -credential $AdminCred -ScriptBlock {New-Item -Path C:\Labfiles, C:\Temp -Type Directory -Force} 
+	•
+	$PSSession = New-PSSession -ComputerName $PublicIPAddress1.IpAddress -Credential $AdminCred 
+	•
+	Copy-Item -ToSession $PSSession -Path $WorkFolder"55224azuresetup.zip" -Destination $WorkFolder -Recurse -Force -ErrorAction Continue 
+	•
+	Remove-PSSession $PSSession 
+	•
+	Invoke-Command -Computername $PublicIPAddress1.IpAddress -credential $AdminCred -File $workFolder"55224ConfigAZVM.ps1" # -AsJob -JobName $VMCLX$NamePrefix 
+7.	When the setup is complete, use the IP address of the VM (from the previous step) to connect to the computer using the Remote Desktop app. The user name will be “admin1” and the password will be “Pa$$w0rd”. Verify that the lab files are in the C:\Labfiles folder on the VM. Perform the steps in the previous five exercises to complete the setup of the machine. 
+8.	When you are finished using the virtual machine, delete the resource group it is assigned to: Remove-AzureRMResourceGroup -Name $ResourceGroupName -Verbose -Force
+
+From <https://skillpipe.courseware-marketplace.com/epubFiles/a8106a75-74a1-4d84-be6f-0a039e41d501/3/OPS/html/55224-1a00.html> 
+
+
+
+5524AzureSetup files are located on the other LOD image <552242A>
